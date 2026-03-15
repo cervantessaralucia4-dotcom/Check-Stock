@@ -1,8 +1,5 @@
-FROM php:8.2-apache
+FROM nginx:alpine
 
-# Desactiva el MPM extra y deja solo prefork
-RUN a2dismod mpm_event && a2enmod mpm_prefork
-
-COPY . /var/www/html/
+COPY . /usr/share/nginx/html/
 
 EXPOSE 80
