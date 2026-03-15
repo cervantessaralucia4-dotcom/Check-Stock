@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StockFlow · Inventario PYME</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0f1117;--bg2:#161b26;--bg3:#1e2535;--bg4:#252d40;
+  --bd:#2a3347;--bd2:#3a4560;
+  --tx:#e8edf5;--tx2:#8b9ab5;--tx3:#5a6a85;
+  --ac:#4f8ef7;--ac2:#3a7de8;
+  --gr:#22c97a;--re:#f25c5c;--am:#f5a623;--pu:#a78bfa;
+  --r:10px;--r2:6px;
+  font-family:'DM Sans',sans-serif;font-size:14px;color:var(--tx);background:var(--bg);
+}
+body{display:flex;height:100vh;overflow:hidden}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:4px}
+.sb{width:220px;min-width:220px;background:var(--bg2);border-right:1px solid var(--bd);display:flex;flex-direction:column}
+.sb-logo{padding:20px 18px 14px;border-bottom:1px solid var(--bd)}
+.sb-logo-name{font-size:15px;font-weight:600}
+.sb-logo-sub{font-size:11px;color:var(--tx3);margin-top:2px;font-family:'DM Mono',monospace}
+.sb-nav{flex:1;padding:10px 0;overflow-y:auto}
+.sb-grp{padding:8px 14px 4px;font-size:10px;font-weight:600;color:var(--tx3);letter-spacing:.8px;text-transform:uppercase}
+.sb-item{display:flex;align-items:center;gap:10px;padding:8px 14px;cursor:pointer;color:var(--tx2);transition:.15s;font-size:13px}
+.sb-item:hover{color:var(--tx);background:var(--bg3)}
+.sb-item.on{color:#fff;background:linear-gradient(90deg,rgba(79,142,247,.18),transparent);border-left:2px solid var(--ac)}
+.sb-icon{width:18px;text-align:center;font-size:14px}
+.badge{margin-left:auto;background:var(--re);color:#fff;font-size:10px;font-weight:600;padding:1px 6px;border-radius:10px;font-family:'DM Mono',monospace;display:none}
+.sb-foot{padding:14px;border-top:1px solid var(--bd)}
+.user-row{display:flex;align-items:center;gap:10px}
+.avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--ac),var(--pu));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:#fff;flex-shrink:0}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{height:52px;background:var(--bg2);border-bottom:1px solid var(--bd);display:flex;align-items:center;padding:0 22px;gap:14px}
+.topbar-title{font-size:15px;font-weight:600}
+.topbar-r{margin-left:auto;display:flex;align-items:center;gap:10px}
+.content{flex:1;overflow-y:auto;padding:22px}
+.page{display:none}.page.on{display:block}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:var(--r2);font-size:12px;font-weight:500;cursor:pointer;transition:.15s;border:none;font-family:'DM Sans',sans-serif}
+.bp{background:var(--ac);color:#fff}.bp:hover{background:var(--ac2)}
+.bg-btn{background:transparent;color:var(--tx2);border:1px solid var(--bd2)}.bg-btn:hover{background:var(--bg3);color:var(--tx)}
+.sg{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px}
+.sc{background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);padding:16px;position:relative;overflow:hidden}
+.sc::after{content:'';position:absolute;top:0;right:0;width:60px;height:60px;border-radius:50%;opacity:.08;transform:translate(20px,-20px)}
+.sc.cb::after{background:var(--ac)}.sc.cg::after{background:var(--gr)}.sc.cr::after{background:var(--re)}.sc.ca::after{background:var(--am)}
+.sc-lbl{font-size:11px;color:var(--tx3);font-weight:500;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.sc-val{font-size:24px;font-weight:600;font-family:'DM Mono',monospace;letter-spacing:-1px}
+.sc-sub{font-size:11px;color:var(--tx3);margin-top:4px}
+.sc-sub.up{color:var(--gr)}.sc-sub.dn{color:var(--re)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:22px}
+.full{margin-bottom:22px}
+.sec-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.sec-ttl{font-size:13px;font-weight:600}
+.tw{background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);overflow:hidden}
+table{width:100%;border-collapse:collapse}
+thead th{padding:10px 14px;text-align:left;font-size:11px;font-weight:600;color:var(--tx3);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--bd);background:var(--bg3)}
+tbody tr{border-bottom:1px solid var(--bd);transition:.1s}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:var(--bg3)}
+tbody td{padding:10px 14px;font-size:13px;color:var(--tx2)}
+tbody td:first-child{color:var(--tx)}
+.mono{font-family:'DM Mono',monospace}
+.tag{display:inline-flex;align-items:center;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:500;font-family:'DM Mono',monospace}
+.tg{background:rgba(34,201,122,.12);color:var(--gr)}.tr-tag{background:rgba(242,92,92,.12);color:var(--re)}
+.ta{background:rgba(245,166,35,.12);color:var(--am)}.tb{background:rgba(79,142,247,.12);color:var(--ac)}
+.tp{background:rgba(167,139,250,.12);color:var(--pu)}
+.loc{display:inline-flex;align-items:center;gap:4px;font-family:'DM Mono',monospace;font-size:11px;color:var(--ac);background:rgba(79,142,247,.1);padding:2px 7px;border-radius:4px}
+.al-list{display:flex;flex-direction:column;gap:8px}
+.al-item{background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r2);padding:12px 14px;display:flex;align-items:center;gap:12px;border-left:3px solid}
+.al-item.danger{border-left-color:var(--re)}.al-item.warn{border-left-color:var(--am)}
+.al-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.danger .al-dot{background:var(--re)}.warn .al-dot{background:var(--am)}
+.al-txt{flex:1}.al-name{font-size:13px;font-weight:500}.al-inf{font-size:11px;color:var(--tx3);margin-top:2px}
+.al-stk{font-family:'DM Mono',monospace;font-size:12px;font-weight:600}
+.danger .al-stk{color:var(--re)}.warn .al-stk{color:var(--am)}
+.pills{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+.pill{padding:4px 12px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;transition:.15s;border:1px solid var(--bd2);color:var(--tx2);background:transparent}
+.pill.on,.pill:hover{background:var(--ac);color:#fff;border-color:var(--ac)}
+.pos-wrap{display:grid;grid-template-columns:1fr 340px;gap:14px;height:calc(100vh - 96px);overflow:hidden}
+.pos-prods{overflow-y:auto}
+.pos-cart{background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);display:flex;flex-direction:column;overflow:hidden}
+.cart-hdr{padding:14px 16px;border-bottom:1px solid var(--bd);font-size:13px;font-weight:600}
+.cart-body{flex:1;overflow-y:auto;padding:10px}
+.cart-item{display:flex;align-items:center;gap:10px;padding:8px;border-radius:var(--r2);margin-bottom:6px;background:var(--bg3)}
+.ci-name{flex:1;font-size:13px;font-weight:500}
+.ci-price{font-family:'DM Mono',monospace;font-size:12px;color:var(--tx2)}
+.qc{display:flex;align-items:center;gap:6px}
+.qb{width:22px;height:22px;border-radius:4px;border:1px solid var(--bd2);background:var(--bg4);color:var(--tx);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:.1s}
+.qb:hover{background:var(--ac);border-color:var(--ac)}
+.qn{width:24px;text-align:center;font-family:'DM Mono',monospace;font-size:12px}
+.cart-foot{padding:14px 16px;border-top:1px solid var(--bd)}
+.cart-row{display:flex;justify-content:space-between;margin-bottom:6px;font-size:13px;color:var(--tx2)}
+.cart-row.big{font-size:16px;font-weight:600;color:var(--tx);margin-top:8px;padding-top:8px;border-top:1px solid var(--bd)}
+.prod-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:10px;padding-bottom:10px}
+.pc{background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);padding:14px;cursor:pointer;transition:.15s}
+.pc:hover{border-color:var(--ac);background:var(--bg3)}
+.pc.out{opacity:.45;pointer-events:none}
+.pc-name{font-size:13px;font-weight:500;margin-bottom:4px}
+.pc-cat{font-size:11px;color:var(--tx3);margin-bottom:8px}
+.pc-bot{display:flex;align-items:center;justify-content:space-between}
+.pc-price{font-family:'DM Mono',monospace;font-size:14px;font-weight:600;color:var(--ac)}
+.pc-stk{font-size:11px;color:var(--tx3)}
+.bg-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px;margin-bottom:22px}
+.bc{background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);padding:18px;cursor:pointer;transition:.15s}
+.bc:hover{border-color:var(--ac)}
+.bc-icon{font-size:26px;margin-bottom:10px}.bc-name{font-size:14px;font-weight:600;margin-bottom:3px}
+.bc-addr{font-size:12px;color:var(--tx3);margin-bottom:12px}
+.bc-stats{display:flex;gap:14px}.bc-stat{text-align:center}
+.bc-n{font-family:'DM Mono',monospace;font-size:18px;font-weight:600}
+.bc-l{font-size:10px;color:var(--tx3);text-transform:uppercase;letter-spacing:.4px}
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:4px}
+.fgr{display:flex;flex-direction:column;gap:5px}.fgr.full{grid-column:1/-1}
+.flbl{font-size:11px;font-weight:600;color:var(--tx3);text-transform:uppercase;letter-spacing:.4px}
+.fi,.fs{background:var(--bg3);border:1px solid var(--bd2);border-radius:var(--r2);padding:8px 12px;color:var(--tx);font-size:13px;font-family:'DM Sans',sans-serif;width:100%;transition:.15s}
+.fi:focus,.fs:focus{outline:none;border-color:var(--ac);background:var(--bg4)}
+.fs option{background:var(--bg3)}
+.sb-bar{background:var(--bg3);border:1px solid var(--bd2);border-radius:var(--r2);padding:7px 12px;color:var(--tx);font-size:13px;font-family:'DM Sans',sans-serif;width:200px}
+.sb-bar:focus{outline:none;border-color:var(--ac)}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;z-index:100;opacity:0;pointer-events:none;transition:.2s}
+.ov.on{opacity:1;pointer-events:all}
+.modal{background:var(--bg2);border:1px solid var(--bd2);border-radius:14px;padding:24px;width:520px;max-width:93vw;max-height:88vh;overflow-y:auto;transform:translateY(10px);transition:.2s}
+.ov.on .modal{transform:translateY(0)}
+.modal-ttl{font-size:16px;font-weight:600;margin-bottom:18px}
+.modal-foot{display:flex;justify-content:flex-end;gap:8px;margin-top:18px;padding-top:14px;border-top:1px solid var(--bd)}
+#toast{position:fixed;bottom:24px;right:24px;z-index:999;background:var(--bg3);border:1px solid var(--bd2);border-radius:var(--r);padding:12px 18px;font-size:13px;transform:translateY(80px);opacity:0;transition:.3s;box-shadow:0 8px 32px rgba(0,0,0,.4);max-width:320px}
+#toast.on{transform:translateY(0);opacity:1}
+#toast.ok{border-left:3px solid var(--gr)}#toast.er{border-left:3px solid var(--re)}
+.spin{display:inline-block;width:14px;height:14px;border:2px solid var(--bd2);border-top-color:var(--ac);border-radius:50%;animation:spin .6s linear infinite;vertical-align:middle}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<aside class="sb">
+  <div class="sb-logo">
+    <div class="sb-logo-name">📦 StockFlow</div>
+    <div class="sb-logo-sub">PHP + MySQL · PYME</div>
+  </div>
+  <nav class="sb-nav">
+    <div class="sb-grp">Principal</div>
+    <div class="sb-item on" data-page="dashboard"><span class="sb-icon">◈</span>Dashboard</div>
+    <div class="sb-grp">Almacén</div>
+    <div class="sb-item" data-page="productos"><span class="sb-icon">▦</span>Productos</div>
+    <div class="sb-item" data-page="bodegas"><span class="sb-icon">⬡</span>Bodegas</div>
+    <div class="sb-item" data-page="compras"><span class="sb-icon">↓</span>Compras / Entradas</div>
+    <div class="sb-grp">Ventas</div>
+    <div class="sb-item" data-page="pos"><span class="sb-icon">◉</span>Punto de Venta</div>
+    <div class="sb-item" data-page="ventas"><span class="sb-icon">≡</span>Historial Ventas</div>
+    <div class="sb-grp">Sistema</div>
+    <div class="sb-item" data-page="alertas"><span class="sb-icon">⚠</span>Alertas<span class="badge" id="badge">0</span></div>
+  </nav>
+  <div class="sb-foot">
+    <div class="user-row">
+      <div class="avatar">A</div>
+      <div><div style="font-size:12px;font-weight:500">Administrador</div><div style="font-size:11px;color:var(--tx3)">Super Admin</div></div>
+    </div>
+  </div>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-title" id="page-title">Dashboard</div>
+    <div class="topbar-r">
+      <input class="sb-bar" id="search" type="text" placeholder="Buscar...">
+      <button class="btn bp" id="action-btn" style="display:none" onclick="topAction()">+ Nuevo</button>
+    </div>
+  </div>
+  <div class="content">
+
+    <div class="page on" id="page-dashboard">
+      <div class="sg">
+        <div class="sc cb"><div class="sc-lbl">Productos</div><div class="sc-val" id="d-prods">—</div><div class="sc-sub">en todas las bodegas</div></div>
+        <div class="sc cg"><div class="sc-lbl">Ventas hoy</div><div class="sc-val" id="d-ventas">—</div><div class="sc-sub up">acumulado</div></div>
+        <div class="sc cr"><div class="sc-lbl">Stock crítico</div><div class="sc-val" id="d-alertas">—</div><div class="sc-sub dn">bajo mínimo</div></div>
+        <div class="sc ca"><div class="sc-lbl">Compras mes</div><div class="sc-val" id="d-compras">—</div><div class="sc-sub">entradas</div></div>
+      </div>
+      <div class="two">
+        <div>
+          <div class="sec-hdr"><div class="sec-ttl">⚠ Alertas de stock</div><button class="btn bg-btn" onclick="goPage('alertas')">Ver todas →</button></div>
+          <div class="al-list" id="d-alertas-list"><div style="color:var(--tx3);font-size:12px">Cargando...</div></div>
+        </div>
+        <div>
+          <div class="sec-hdr"><div class="sec-ttl">🕐 Últimas ventas</div></div>
+          <div class="tw"><table><thead><tr><th>Código</th><th>Total</th><th>Estado</th></tr></thead>
+          <tbody id="d-ventas-tbl"><tr><td colspan="3" style="color:var(--tx3)">Cargando...</td></tr></tbody></table></div>
+        </div>
+      </div>
+      <div class="full">
+        <div class="sec-hdr"><div class="sec-ttl">📋 Últimas compras</div></div>
+        <div class="tw"><table><thead><tr><th>Proveedor</th><th>Bodega</th><th>Total</th><th>Estado</th></tr></thead>
+        <tbody id="d-compras-tbl"><tr><td colspan="4" style="color:var(--tx3)">Cargando...</td></tr></tbody></table></div>
+      </div>
+    </div>
+
+    <div class="page" id="page-productos">
+      <div class="pills" id="cat-pills"><div class="pill on" onclick="setPill(this,'cat','')">Todos</div></div>
+      <div class="tw"><table><thead><tr><th>Código</th><th>Producto</th><th>Categoría</th><th>Ubicación</th><th>Stock</th><th>P.Compra</th><th>P.Venta</th><th>Estado</th></tr></thead>
+      <tbody id="tbl-productos"><tr><td colspan="8" style="color:var(--tx3);padding:20px">Cargando...</td></tr></tbody></table></div>
+    </div>
+
+    <div class="page" id="page-bodegas">
+      <div class="bg-grid" id="bodegas-grid"><div style="color:var(--tx3)">Cargando...</div></div>
+    </div>
+
+    <div class="page" id="page-compras">
+      <div class="tw"><table><thead><tr><th>#</th><th>Proveedor</th><th>Bodega</th><th>Total</th><th>Fecha</th><th>Estado</th></tr></thead>
+      <tbody id="tbl-compras"><tr><td colspan="6" style="color:var(--tx3);padding:20px">Cargando...</td></tr></tbody></table></div>
+    </div>
+
+    <div class="page" id="page-pos">
+      <div class="pos-wrap">
+        <div class="pos-prods">
+          <div class="pills" id="pos-pills"><div class="pill on" onclick="setPill(this,'pos','')">Todos</div></div>
+          <div class="prod-grid" id="pos-grid"><div style="color:var(--tx3)">Cargando...</div></div>
+        </div>
+        <div class="pos-cart">
+          <div class="cart-hdr">🛒 Carrito</div>
+          <div class="cart-body" id="cart-body"><div style="color:var(--tx3);font-size:12px;padding:20px;text-align:center">Selecciona productos</div></div>
+          <div class="cart-foot">
+            <div class="cart-row"><span>Subtotal</span><span class="mono" id="c-sub">$0</span></div>
+            <div class="cart-row"><span>IVA 19%</span><span class="mono" id="c-iva">$0</span></div>
+            <div class="cart-row big"><span>Total</span><span class="mono" id="c-total">$0</span></div>
+            <button class="btn bp" style="width:100%;margin-top:10px;justify-content:center;padding:10px" onclick="processSale()">Procesar venta ✓</button>
+            <button class="btn bg-btn" style="width:100%;margin-top:6px;justify-content:center" onclick="clearCart()">Vaciar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="page" id="page-ventas">
+      <div class="tw"><table><thead><tr><th>Código</th><th>Fecha</th><th>Cliente</th><th>Total</th><th>Estado</th></tr></thead>
+      <tbody id="tbl-ventas"><tr><td colspan="5" style="color:var(--tx3);padding:20px">Cargando...</td></tr></tbody></table></div>
+    </div>
+
+    <div class="page" id="page-alertas">
+      <div class="sec-hdr"><div class="sec-ttl">Productos bajo stock mínimo</div></div>
+      <div class="al-list" id="alertas-list"><div style="color:var(--tx3)">Cargando...</div></div>
+    </div>
+
+  </div>
+</div>
+
+<div class="ov" id="modal">
+  <div class="modal">
+    <div class="modal-ttl" id="modal-ttl">—</div>
+    <div id="modal-body"></div>
+    <div class="modal-foot">
+      <button class="btn bg-btn" onclick="closeModal()">Cancelar</button>
+      <button class="btn bp" id="modal-save">Guardar</button>
+    </div>
+  </div>
+</div>
+<div id="toast"></div>
+
+<script>
+// ── API BASE (relativa — funciona en Railway y local) ─────────
+const API = '/api'
+const COP = n => '$' + Number(n||0).toLocaleString('es-CO')
+
+async function api(path, method='GET', data=null) {
+  const opts = { method, headers: {'Content-Type':'application/json'} }
+  if (data) opts.body = JSON.stringify(data)
+  const res = await fetch(API + path, opts)
+  const json = await res.json()
+  if (!res.ok) throw new Error(json.error || 'Error del servidor')
+  return json
+}
+
+// ── ESTADO ────────────────────────────────────────────────────
+let cart = {}
+let cats = []
+let currentPage = 'dashboard'
+
+const pages = {
+  dashboard:{ title:'Dashboard',         action:null },
+  productos: { title:'Productos',         action:'producto' },
+  bodegas:   { title:'Bodegas',           action:'bodega' },
+  compras:   { title:'Compras/Entradas',  action:'compra' },
+  pos:       { title:'Punto de Venta',    action:null },
+  ventas:    { title:'Historial Ventas',  action:null },
+  alertas:   { title:'Alertas de Stock',  action:null },
+}
+
+// ── NAV ───────────────────────────────────────────────────────
+function goPage(page) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'))
+  document.getElementById('page-'+page)?.classList.add('on')
+  document.querySelectorAll('.sb-item').forEach(i=>{
+    i.classList.toggle('on', i.dataset.page===page)
+  })
+  currentPage = page
+  const cfg = pages[page]
+  document.getElementById('page-title').textContent = cfg?.title || page
+  const btn = document.getElementById('action-btn')
+  btn.style.display = cfg?.action ? '' : 'none'
+  loadPage(page)
+}
+
+document.querySelectorAll('.sb-item').forEach(el => {
+  el.addEventListener('click', () => goPage(el.dataset.page))
+})
+
+async function loadPage(p) {
+  try {
+    switch(p) {
+      case 'dashboard': await renderDashboard(); break
+      case 'productos':  await renderProductos();  break
+      case 'bodegas':    await renderBodegas();    break
+      case 'compras':    await renderCompras();    break
+      case 'pos':        await renderPOS();        break
+      case 'ventas':     await renderVentas();     break
+      case 'alertas':    await renderAlertas();    break
+    }
+  } catch(e) { toast('Error cargando: '+e.message,'er') }
+}
+
+function topAction() { openModal(pages[currentPage]?.action) }
+
+// ── DASHBOARD ─────────────────────────────────────────────────
+async function renderDashboard() {
+  const d = await api('/dashboard')
+  document.getElementById('d-prods').textContent   = d.total_productos
+  document.getElementById('d-ventas').textContent  = COP(d.ventas_hoy)
+  document.getElementById('d-alertas').textContent = d.alertas
+  document.getElementById('d-compras').textContent = d.compras_mes + ' entradas'
+  const badge = document.getElementById('badge')
+  badge.textContent = d.alertas
+  badge.style.display = d.alertas > 0 ? '' : 'none'
+
+  // Alertas mini
+  const al = await api('/alertas')
+  renderAlertasHTML(al.slice(0,3), 'd-alertas-list', true)
+
+  // Últimas ventas
+  document.getElementById('d-ventas-tbl').innerHTML = d.ultimas_ventas.length
+    ? d.ultimas_ventas.map(v=>`<tr><td><span class="mono">${v.codigo}</span></td><td>${COP(v.total)}</td><td>${etiqueta(v.estado)}</td></tr>`).join('')
+    : '<tr><td colspan="3" style="color:var(--tx3)">Sin ventas</td></tr>'
+
+  document.getElementById('d-compras-tbl').innerHTML = d.ultimas_compras.length
+    ? d.ultimas_compras.map(c=>`<tr><td>${c.proveedor||'—'}</td><td>${c.bodega||'—'}</td><td>${COP(c.total)}</td><td>${etiqueta(c.estado)}</td></tr>`).join('')
+    : '<tr><td colspan="4" style="color:var(--tx3)">Sin compras</td></tr>'
+}
+
+// ── PRODUCTOS ─────────────────────────────────────────────────
+async function renderProductos(catId='') {
+  const path = catId ? `/productos?categoria_id=${catId}` : '/productos'
+  const prods = await api(path)
+
+  // Construir pills de categoría si no existen aún
+  if (cats.length === 0) {
+    cats = await api('/categorias')
+    const pills = document.getElementById('cat-pills')
+    pills.innerHTML = `<div class="pill on" onclick="setPill(this,'cat','')">Todos</div>` +
+      cats.map(c=>`<div class="pill" onclick="setPill(this,'cat','${c.id}')">${c.nombre}</div>`).join('')
+  }
+
+  document.getElementById('tbl-productos').innerHTML = prods.length
+    ? prods.map(p => {
+        const stk   = parseInt(p.stock||0)
+        const min   = parseInt(p.stock_minimo||0)
+        const nivel = stk===0 ? 're' : stk<=min ? 're' : stk<=min*1.5 ? 'am' : 'gr'
+        const etiq  = stk===0 ? 'Sin stock' : stk<=min ? 'Crítico' : stk<=min*1.5 ? 'Bajo' : 'OK'
+        const catColor = {blue:'tb',purple:'tp',amber:'ta',green:'tg'}[p.cat_color]||'tb'
+        return `<tr>
+          <td><span class="mono">${p.codigo}</span></td>
+          <td>${p.nombre}</td>
+          <td><span class="tag ${catColor}">${p.categoria||'—'}</span></td>
+          <td><span class="loc">🏭 ${p.bodega||'—'} / ${p.pasillo||'?'}-${p.estante||'?'}</span></td>
+          <td><b style="color:var(--${nivel})">${stk}</b> <span style="color:var(--tx3);font-size:11px">/ mín ${min}</span></td>
+          <td class="mono">${COP(p.precio_compra)}</td>
+          <td class="mono">${COP(p.precio_venta)}</td>
+          <td><span class="tag t${nivel==='re'?'r-tag':nivel==='am'?'a':'g'}">${etiq}</span></td>
+        </tr>`
+      }).join('')
+    : '<tr><td colspan="8" style="color:var(--tx3);padding:20px">Sin productos</td></tr>'
+}
+
+// ── BODEGAS ───────────────────────────────────────────────────
+async function renderBodegas() {
+  const bods = await api('/bodegas')
+  document.getElementById('bodegas-grid').innerHTML =
+    bods.map(b=>`<div class="bc">
+      <div class="bc-icon">${b.tipo==='almacen'?'📦':'🏭'}</div>
+      <div class="bc-name">${b.nombre}</div>
+      <div class="bc-addr">${b.direccion||'Sin dirección'}</div>
+      <div class="bc-stats">
+        <div class="bc-stat"><div class="bc-n" style="color:var(--ac)">${b.total_productos}</div><div class="bc-l">Productos</div></div>
+        <div class="bc-stat"><div class="bc-n" style="color:var(--${b.alertas>0?'re':'gr'})">${b.alertas}</div><div class="bc-l">Alertas</div></div>
+        <div class="bc-stat"><div class="bc-n" style="color:var(--gr)">${b.pasillos}</div><div class="bc-l">Pasillos</div></div>
+      </div>
+    </div>`).join('') +
+    `<div class="bc" style="border-style:dashed;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:150px" onclick="openModal('bodega')">
+      <div style="font-size:26px;color:var(--tx3)">+</div>
+      <div style="color:var(--tx3);font-size:13px;margin-top:6px">Nueva bodega</div>
+    </div>`
+}
+
+// ── COMPRAS ───────────────────────────────────────────────────
+async function renderCompras() {
+  const data = await api('/compras')
+  document.getElementById('tbl-compras').innerHTML = data.length
+    ? data.map(c=>`<tr>
+        <td><span class="mono">${c.codigo}</span></td>
+        <td>${c.proveedor||'—'}</td><td>${c.bodega||'—'}</td>
+        <td class="mono">${COP(c.total)}</td>
+        <td>${c.fecha||'—'}</td><td>${etiqueta(c.estado)}</td>
+      </tr>`).join('')
+    : '<tr><td colspan="6" style="color:var(--tx3);padding:20px">Sin compras</td></tr>'
+}
+
+// ── POS ───────────────────────────────────────────────────────
+async function renderPOS() {
+  const prods = await api('/productos')
+  if (cats.length===0) cats = await api('/categorias')
+
+  // Pills
+  const pills = document.getElementById('pos-pills')
+  pills.innerHTML = `<div class="pill on" onclick="setPill(this,'pos','')">Todos</div>` +
+    cats.map(c=>`<div class="pill" onclick="setPill(this,'pos','${c.id}')">${c.nombre}</div>`).join('')
+
+  document.getElementById('pos-grid').innerHTML = prods.map(p=>{
+    const stk = parseInt(p.stock||0)
+    return `<div class="pc${stk===0?' out':''}"
+      data-id="${p.id}" data-nombre="${p.nombre.replace(/"/g,"'")}"
+      data-precio="${p.precio_venta}" data-stock="${stk}" data-cat="${p.categoria_id||''}"
+      onclick="addToCart(this)">
+      <div class="pc-name">${p.nombre}</div>
+      <div class="pc-cat">${p.categoria||''}</div>
+      <div class="pc-bot">
+        <span class="pc-price">${COP(p.precio_venta)}</span>
+        <span class="pc-stk" style="${stk===0?'color:var(--re)':''}">${stk===0?'Sin stock':'Stock: '+stk}</span>
+      </div>
+    </div>`
+  }).join('')
+  renderCart()
+}
+
+// ── VENTAS ────────────────────────────────────────────────────
+async function renderVentas() {
+  const data = await api('/ventas')
+  document.getElementById('tbl-ventas').innerHTML = data.length
+    ? data.map(v=>`<tr>
+        <td><span class="mono">${v.codigo}</span></td>
+        <td>${v.fecha||'—'}</td>
+        <td>${v.cliente||'Público'}</td>
+        <td class="mono">${COP(v.total)}</td>
+        <td>${etiqueta(v.estado)}</td>
+      </tr>`).join('')
+    : '<tr><td colspan="5" style="color:var(--tx3);padding:20px">Sin ventas</td></tr>'
+}
+
+// ── ALERTAS ───────────────────────────────────────────────────
+async function renderAlertas() {
+  const data = await api('/alertas')
+  document.getElementById('badge').textContent = data.length
+  document.getElementById('badge').style.display = data.length ? '' : 'none'
+  renderAlertasHTML(data, 'alertas-list', false)
+}
+
+function renderAlertasHTML(data, targetId, mini) {
+  if (!data.length) { document.getElementById(targetId).innerHTML = '<p style="color:var(--tx3);font-size:12px">Sin alertas ✓</p>'; return }
+  document.getElementById(targetId).innerHTML = data.map(a=>{
+    const cls = a.nivel==='sin_stock'||a.nivel==='critico' ? 'danger' : 'warn'
+    const btn = mini ? '' : `<button class="btn bg-btn" style="margin-left:10px;flex-shrink:0" onclick="goPage('compras')">Reponer</button>`
+    return `<div class="al-item ${cls}">
+      <div class="al-dot"></div>
+      <div class="al-txt">
+        <div class="al-name">${a.producto}</div>
+        <div class="al-inf">${a.bodega} · Pasillo ${a.pasillo} · Estante ${a.estante}</div>
+      </div>
+      <div class="al-stk">${a.stock} / mín ${a.stock_minimo}</div>${btn}
+    </div>`
+  }).join('')
+}
+
+// ── CARRITO ───────────────────────────────────────────────────
+function addToCart(el) {
+  const id = el.dataset.id, stk = parseInt(el.dataset.stock)
+  if (!cart[id]) cart[id] = {nombre:el.dataset.nombre,precio:parseInt(el.dataset.precio),qty:0,stock:stk}
+  if (cart[id].qty >= stk) { toast('Stock insuficiente','er'); return }
+  cart[id].qty++
+  renderCart()
+}
+
+function renderCart() {
+  const keys = Object.keys(cart)
+  if (!keys.length) {
+    document.getElementById('cart-body').innerHTML = '<div style="color:var(--tx3);font-size:12px;padding:20px;text-align:center">Selecciona productos</div>'
+    updateTotals(0); return
+  }
+  let html='', sub=0
+  keys.forEach(id=>{
+    const it=cart[id]; sub+=it.precio*it.qty
+    html+=`<div class="cart-item">
+      <div class="ci-name">${it.nombre}</div>
+      <div class="qc">
+        <button class="qb" onclick="chQty('${id}',-1)">−</button>
+        <span class="qn">${it.qty}</span>
+        <button class="qb" onclick="chQty('${id}',1)">+</button>
+      </div>
+      <div class="ci-price">${COP(it.precio*it.qty)}</div>
+    </div>`
+  })
+  document.getElementById('cart-body').innerHTML = html
+  updateTotals(sub)
+}
+
+function chQty(id,d){ cart[id].qty+=d; if(cart[id].qty<=0) delete cart[id]; renderCart() }
+function clearCart(){ cart={}; renderCart() }
+function updateTotals(sub){
+  const iva=Math.round(sub*.19)
+  document.getElementById('c-sub').textContent=COP(sub)
+  document.getElementById('c-iva').textContent=COP(iva)
+  document.getElementById('c-total').textContent=COP(sub+iva)
+}
+
+async function processSale() {
+  const keys = Object.keys(cart)
+  if (!keys.length) { toast('Carrito vacío','er'); return }
+  const btn = document.querySelector('.pos-cart .bp')
+  btn.innerHTML = '<span class="spin"></span> Procesando...'
+  btn.disabled = true
+  try {
+    const items = keys.map(id=>({producto_id:parseInt(id),cantidad:cart[id].qty,precio_unitario:cart[id].precio}))
+    const res = await api('/ventas','POST',{items,bodega_id:1,cliente_id:1})
+    clearCart()
+    toast(`✓ Venta ${res.codigo} registrada. Stock descontado.`,'ok')
+  } catch(e) { toast(e.message,'er') }
+  finally { btn.innerHTML='Procesar venta ✓'; btn.disabled=false }
+}
+
+// ── FILTROS ───────────────────────────────────────────────────
+function setPill(el,group,val) {
+  const container = group==='cat' ? 'cat-pills' : 'pos-pills'
+  document.querySelectorAll(`#${container} .pill`).forEach(p=>p.classList.remove('on'))
+  el.classList.add('on')
+  if (group==='cat') renderProductos(val)
+  if (group==='pos') {
+    document.querySelectorAll('#pos-grid .pc').forEach(c=>{
+      c.style.display = (!val || c.dataset.cat===val) ? '' : 'none'
+    })
+  }
+}
+
+document.getElementById('search').addEventListener('input', e=>{
+  const q = e.target.value.toLowerCase()
+  if (currentPage==='productos') {
+    document.querySelectorAll('#tbl-productos tr').forEach(r=>{ r.style.display=r.textContent.toLowerCase().includes(q)?'':' none' })
+  }
+  if (currentPage==='pos') {
+    document.querySelectorAll('#pos-grid .pc').forEach(c=>{ c.style.display=c.querySelector('.pc-name').textContent.toLowerCase().includes(q)?'':'none' })
+  }
+})
+
+// ── MODALES ───────────────────────────────────────────────────
+async function openModal(type) {
+  if (!type) return
+  const titles = {producto:'Nuevo producto',bodega:'Nueva bodega',compra:'Registrar entrada'}
+  document.getElementById('modal-ttl').textContent = titles[type]
+
+  let html = ''
+  if (type==='producto') {
+    const [bods, cs] = await Promise.all([api('/bodegas'), api('/categorias')])
+    const catOpts = cs.map(c=>`<option value="${c.id}">${c.nombre}</option>`).join('')
+    const bodOpts = bods.map(b=>`<option value="${b.id}">${b.nombre}</option>`).join('')
+    html = `<div class="fg">
+      <div class="fgr"><label class="flbl">Código</label><input class="fi" id="f-cod" placeholder="Ej: TON-HP85A"></div>
+      <div class="fgr"><label class="flbl">Nombre</label><input class="fi" id="f-nom"></div>
+      <div class="fgr"><label class="flbl">Marca</label><input class="fi" id="f-marca"></div>
+      <div class="fgr"><label class="flbl">Categoría</label><select class="fs" id="f-cat"><option value="">— Seleccionar —</option>${catOpts}</select></div>
+      <div class="fgr"><label class="flbl">Bodega</label><select class="fs" id="f-bod"><option value="">— Seleccionar —</option>${bodOpts}</select></div>
+      <div class="fgr"><label class="flbl">Pasillo</label><input class="fi" id="f-pas" placeholder="A"></div>
+      <div class="fgr"><label class="flbl">Estante</label><input class="fi" id="f-est" placeholder="2"></div>
+      <div class="fgr"><label class="flbl">Stock inicial</label><input class="fi" id="f-stk" type="number" value="0"></div>
+      <div class="fgr"><label class="flbl">Stock mínimo</label><input class="fi" id="f-min" type="number" value="10"></div>
+      <div class="fgr"><label class="flbl">Precio compra</label><input class="fi" id="f-pc" type="number" value="0"></div>
+      <div class="fgr"><label class="flbl">Precio venta</label><input class="fi" id="f-pv" type="number" value="0"></div>
+    </div>`
+    document.getElementById('modal-save').onclick = saveProducto
+  }
+  if (type==='bodega') {
+    html = `<div class="fg">
+      <div class="fgr full"><label class="flbl">Nombre</label><input class="fi" id="b-nom" placeholder="Ej: Bodega Sur"></div>
+      <div class="fgr full"><label class="flbl">Dirección</label><input class="fi" id="b-dir"></div>
+      <div class="fgr"><label class="flbl">Tipo</label><select class="fs" id="b-tipo"><option value="bodega">Bodega</option><option value="almacen">Almacén</option><option value="punto_venta">Punto de venta</option></select></div>
+      <div class="fgr"><label class="flbl">Pasillos</label><input class="fi" id="b-pas" type="number" value="2"></div>
+    </div>`
+    document.getElementById('modal-save').onclick = saveBodega
+  }
+  if (type==='compra') {
+    const [bods, provs, prods] = await Promise.all([api('/bodegas'), api('/proveedores'), api('/productos')])
+    html = `<div class="fg">
+      <div class="fgr"><label class="flbl">Proveedor</label><select class="fs" id="c-prov"><option value="">— Seleccionar —</option>${provs.map(p=>`<option value="${p.id}">${p.nombre}</option>`).join('')}</select></div>
+      <div class="fgr"><label class="flbl">Bodega destino</label><select class="fs" id="c-bod"><option value="">— Seleccionar —</option>${bods.map(b=>`<option value="${b.id}">${b.nombre}</option>`).join('')}</select></div>
+      <div class="fgr full"><label class="flbl">Producto</label><select class="fs" id="c-prod"><option value="">— Seleccionar —</option>${prods.map(p=>`<option value="${p.id}">${p.nombre}</option>`).join('')}</select></div>
+      <div class="fgr"><label class="flbl">Cantidad</label><input class="fi" id="c-qty" type="number" value="1" min="1"></div>
+      <div class="fgr"><label class="flbl">Costo unitario</label><input class="fi" id="c-cost" type="number" value="0"></div>
+      <div class="fgr full"><label class="flbl">Notas</label><input class="fi" id="c-notas" placeholder="Opcional"></div>
+    </div>`
+    document.getElementById('modal-save').onclick = saveCompra
+  }
+  document.getElementById('modal-body').innerHTML = html
+  document.getElementById('modal').classList.add('on')
+}
+
+function closeModal() { document.getElementById('modal').classList.remove('on') }
+document.getElementById('modal').addEventListener('click', e=>{ if(e.target===document.getElementById('modal')) closeModal() })
+
+async function saveProducto() {
+  const cod=document.getElementById('f-cod').value.trim()
+  const nom=document.getElementById('f-nom').value.trim()
+  if (!cod||!nom) { toast('Código y nombre son obligatorios','er'); return }
+  try {
+    await api('/productos','POST',{
+      codigo:cod, nombre:nom, marca:document.getElementById('f-marca').value,
+      categoria_id:document.getElementById('f-cat').value||null,
+      bodega_id:document.getElementById('f-bod').value||null,
+      pasillo:document.getElementById('f-pas').value,
+      estante:document.getElementById('f-est').value,
+      stock:parseInt(document.getElementById('f-stk').value)||0,
+      stock_minimo:parseInt(document.getElementById('f-min').value)||0,
+      precio_compra:parseFloat(document.getElementById('f-pc').value)||0,
+      precio_venta:parseFloat(document.getElementById('f-pv').value)||0,
+    })
+    closeModal(); toast('✓ Producto guardado','ok'); renderProductos()
+  } catch(e) { toast(e.message,'er') }
+}
+
+async function saveBodega() {
+  const nom=document.getElementById('b-nom').value.trim()
+  if (!nom) { toast('Nombre obligatorio','er'); return }
+  try {
+    await api('/bodegas','POST',{nombre:nom,direccion:document.getElementById('b-dir').value,tipo:document.getElementById('b-tipo').value,pasillos:parseInt(document.getElementById('b-pas').value)||1})
+    closeModal(); toast('✓ Bodega guardada','ok'); renderBodegas()
+  } catch(e) { toast(e.message,'er') }
+}
+
+async function saveCompra() {
+  const prov=document.getElementById('c-prov').value
+  const bod=document.getElementById('c-bod').value
+  const prod=document.getElementById('c-prod').value
+  const qty=parseInt(document.getElementById('c-qty').value)||0
+  if (!prov||!bod||!prod||!qty) { toast('Completa todos los campos','er'); return }
+  try {
+    await api('/compras','POST',{
+      proveedor_id:parseInt(prov), bodega_id:parseInt(bod),
+      items:[{producto_id:parseInt(prod),cantidad:qty,precio_unitario:parseFloat(document.getElementById('c-cost').value)||0}],
+      notas:document.getElementById('c-notas').value
+    })
+    closeModal(); toast('✓ Entrada registrada. Stock actualizado.','ok'); renderCompras()
+  } catch(e) { toast(e.message,'er') }
+}
+
+// ── HELPERS ───────────────────────────────────────────────────
+function etiqueta(e) {
+  const m={completada:'tg',recibida:'tg',pendiente:'ta',en_transito:'ta',cancelada:'tr-tag'}
+  return `<span class="tag ${m[e]||'tb'}">${e||'—'}</span>`
+}
+
+let toastT
+function toast(msg,type='ok') {
+  const el=document.getElementById('toast')
+  el.textContent=msg; el.className='on '+type
+  clearTimeout(toastT); toastT=setTimeout(()=>el.className='',3500)
+}
+
+// ── INIT ──────────────────────────────────────────────────────
+loadPage('dashboard')
+</script>
+</body>
+</html>
